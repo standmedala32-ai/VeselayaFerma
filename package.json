@@ -1,0 +1,15 @@
+
+{
+  "name": "veselaya-ferma-3d",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Весёлая ферма 3D",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}
