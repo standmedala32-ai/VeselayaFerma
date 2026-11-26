@@ -6,19 +6,15 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-
 const io = new Server(server, {
-  cors: {
-    origin: '*'
-  }
+  cors: { origin: '*' }
 });
 
 const PORT = process.env.PORT || 3000;
+const players = new Map();
 
-// Раздаём файлы игры
 app.use(express.static(__dirname));
 
-// Проверка сервера
 app.get('/status', (req, res) => {
   res.json({
     status: 'online',
@@ -27,12 +23,11 @@ app.get('/status', (req, res) => {
   });
 });
 
-// Все подключённые игроки
-const players = new Map();
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-// Подключение нового игрока
 io.on('connection', socket => {
-
   console.log('Игрок подключился:', socket.id);
 
   const player = {
@@ -47,19 +42,13 @@ io.on('connection', socket => {
 
   players.set(socket.id, player);
 
-  // Отправляем новому игроку список игроков
   socket.emit('players:initial', Array.from(players.values()));
-
-  // Сообщаем остальным о новом игроке
   socket.broadcast.emit('player:joined', player);
 
-  // Получаем положение игрока
   socket.on('player:update', data => {
-
     if (!data || typeof data !== 'object') return;
 
     const current = players.get(socket.id);
-
     if (!current) return;
 
     const x = Number(data.x);
@@ -67,14 +56,8 @@ io.on('connection', socket => {
     const z = Number(data.z);
     const rotation = Number(data.rotation);
 
-    if (
-      !Number.isFinite(x) ||
-      !Number.isFinite(y) ||
-      !Number.isFinite(z) ||
-      !Number.isFinite(rotation)
-    ) return;
+    if (![x, y, z, rotation].every(Number.isFinite)) return;
 
-    // Ограничиваем координаты игрового мира
     current.x = Math.max(-48, Math.min(48, x));
     current.y = Math.max(-2, Math.min(5, y));
     current.z = Math.max(-45, Math.min(45, z));
@@ -88,28 +71,16 @@ io.on('connection', socket => {
       current.camera = data.camera;
     }
 
-    // Передаём обновление остальным игрокам
     socket.broadcast.emit('player:update', current);
   });
 
-  // Отключение игрока
   socket.on('disconnect', () => {
-
-    console.log('Игрок отключился:', socket.id);
-
     players.delete(socket.id);
-
     io.emit('player:left', socket.id);
+    console.log('Игрок отключился:', socket.id);
   });
-
 });
 
-// Запуск сервера
 server.listen(PORT, '0.0.0.0', () => {
-
-  console.log('================================');
-  console.log('🌻 ВЕСЁЛАЯ ФЕРМА 3D');
-  console.log('================================');
-  console.log(`Сервер запущен: http://localhost:${PORT}`);
-  console.log('Ожидание игроков...');
+  console.log('🌻 ВЕСЁЛАЯ ФЕРМА 3D запущена на порту ' + PORT);
 });
