@@ -1,123 +1,673 @@
-<!doctype html>  <html lang="ru">    <head>    
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">    
-<title>Весёлая ферма 3D — обновление</title>    
-<style>    
-:root{--glass:#183d2ddd;--gold:#ffd46a}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8fcf75;font-family:system-ui,Arial;touch-action:none}canvas{display:block}#ui{position:fixed;inset:0;pointer-events:none;color:#fff}.top{position:absolute;top:env(safe-area-inset-top,8px);left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;align-items:center}.pill,.panel{background:var(--glass);border:1px solid #ffffff55;border-radius:14px;padding:9px 12px;box-shadow:0 3px 12px #17351e55;font-weight:800;text-shadow:0 1px 2px #0006}.top button,.menuBtn{pointer-events:auto;border:1px solid #fff8;border-radius:12px;background:#214d32;color:white;padding:9px 12px;font-weight:800;font-size:15px}.bottom{position:absolute;bottom:calc(12px + env(safe-area-inset-bottom,0px));left:0;right:0;display:flex;justify-content:space-between;align-items:end;padding:0 14px}.joy{width:116px;height:116px;border-radius:50%;border:3px solid #ffffffb0;background:#ffffff40;position:relative;pointer-events:auto;box-shadow:0 4px 18px #244b3155}.stick{position:absolute;left:31px;top:31px;width:48px;height:48px;border-radius:50%;background:#fffde9;box-shadow:0 3px 9px #0005}.actions{display:grid;grid-template-columns:repeat(2,64px);gap:8px;pointer-events:auto}.act{width:64px;height:58px;border:2px solid #ffffffbb;border-radius:18px;background:#285b39ee;color:#fff;font-size:23px;font-weight:900;box-shadow:0 3px 9px #0004}.act:active,.top button:active{transform:scale(.94)}.seeds{position:absolute;left:12px;bottom:140px;display:flex;gap:6px;pointer-events:auto}.seed{background:#234d32eF;border:2px solid #fff9;border-radius:12px;color:white;padding:8px 11px;font-size:20px}.seed.active{background:#c58b25;color:#241700}.hint{position:absolute;top:65px;left:50%;transform:translateX(-50%);background:#173b2ddd;border-radius:12px;padding:9px 13px;font-size:13px;white-space:nowrap;max-width:90vw;text-align:center}.modal{display:none;position:absolute;inset:0;background:#07190dcc;pointer-events:auto;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.window{width:min(520px,96vw);max-height:85vh;overflow:auto;background:linear-gradient(145deg,#315e3a,#183a28);border:2px solid #e8d49a;border-radius:20px;padding:18px;box-shadow:0 15px 50px #0009}.window h2{margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.item{background:#ffffff16;border:1px solid #ffffff35;border-radius:13px;padding:11px}.item button,.wide{margin-top:7px;width:100%;border:0;border-radius:10px;background:#e7b84e;color:#38260c;padding:10px;font-weight:900}.close{float:right;background:#a84835!important;color:white!important}.small{font-size:12px;opacity:.85}.bar{height:8px;background:#ffffff30;border-radius:10px;overflow:hidden}.bar i{display:block;height:100%;background:#f5d16d;width:100%}#rotate{display:none;position:absolute;inset:0;background:#173b2d;color:white;align-items:center;justify-content:center;text-align:center;padding:30px;font-weight:800;pointer-events:auto}@media(orientation:portrait){#rotate{display:flex}#ui{visibility:hidden}}    
-</style>    
-</head>    
-<body>    
-<div id="ui">    
- <div class="top"><div class="pill">🌻 ВЕСЁЛАЯ ФЕРМА</div><div class="pill">🪙 <span id="coins">150</span></div><div class="pill">🌾 <span id="harvest">0</span></div><button id="shopOpen">🏪 Магазин</button><button id="settingsOpen">⚙️</button></div>    
- <div class="hint" id="hint">Добро пожаловать! Подойди к грядке.</div>    
- <div class="seeds"><button class="seed active" data-seed="1">🥕</button><button class="seed" data-seed="2">🌾</button><button class="seed" data-seed="3">🍅</button></div>    
- <div class="bottom"><div class="joy" id="joy"><div class="stick" id="stick"></div></div><div class="actions"><button class="act" id="action" title="Действие">✋</button><button class="act" id="water">💧</button><button class="act" id="feed">🌽</button><button class="act" id="sell">🪙</button></div></div>    
- <div class="modal" id="shop"><div class="window"><button class="close" id="shopClose">Закрыть ✕</button><h2>🏪 Магазин фермы</h2><p class="small">Покупай семена и животных. Покупки сохраняются на этом устройстве.</p><div class="grid" id="shopItems"></div></div></div>    
- <div class="modal" id="settings"><div class="window"><button class="close" id="settingsClose">Закрыть ✕</button><h2>⚙️ Настройки</h2><div class="item"><b>Качество графики</b><select id="quality" class="wide"><option value="low">Экономное</option><option value="medium" selected>Обычное</option><option value="high">Высокое</option></select></div><div class="item"><b>Звук</b><p class="small">Звуковые эффекты добавим следующим обновлением.</p></div><div class="item"><b>Админ-панель</b><p class="small">Вход по паролю. Пароль сейчас хранится в коде игры, поэтому это не настоящая защита от посторонних.</p><input id="adminPass" type="password" placeholder="Пароль администратора" class="wide"><button id="adminLogin" class="wide">Войти</button><div id="adminArea" style="display:none"><p>Режим администратора включён</p><button id="giveCoins" class="wide">+500 монет</button><button id="growAll" class="wide">Вырастить весь урожай</button></div></div></div></div>    
- <div id="rotate">📱<br><br>Поверни телефон горизонтально, чтобы играть удобнее.</div>    
-</div>    
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Весёлая ферма 3D</title>
+<style>
+:root{--glass:#183d2ddd;--gold:#ffd46a}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8fcf75;font-family:system-ui,Arial;touch-action:none}
+canvas{display:block}
+#ui{position:fixed;inset:0;pointer-events:none;color:#fff}
+.top{position:absolute;top:env(safe-area-inset-top,8px);left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.pill,.panel{background:var(--glass);border:1px solid #ffffff55;border-radius:14px;padding:9px 12px;box-shadow:0 3px 12px #17351e55;font-weight:800;text-shadow:0 1px 2px #0006}
+.top button,.menuBtn{pointer-events:auto;border:1px solid #fff8;border-radius:12px;background:#214d32;color:white;padding:9px 12px;font-weight:800;font-size:15px}
+.bottom{position:absolute;bottom:calc(12px + env(safe-area-inset-bottom,0px));left:0;right:0;display:flex;justify-content:space-between;align-items:end;padding:0 14px}
+.joy{width:116px;height:116px;border-radius:50%;border:3px solid #ffffffb0;background:#ffffff40;position:relative;pointer-events:auto;box-shadow:0 4px 18px #244b3155}
+.stick{position:absolute;left:31px;top:31px;width:48px;height:48px;border-radius:50%;background:#fffde9;box-shadow:0 3px 9px #0005}
+.actions{display:grid;grid-template-columns:repeat(2,64px);gap:8px;pointer-events:auto}
+.act{width:64px;height:58px;border:2px solid #ffffffbb;border-radius:18px;background:#285b39ee;color:#fff;font-size:23px;font-weight:900;box-shadow:0 3px 9px #0004}
+.act:active,.top button:active{transform:scale(.94)}
+.seeds{position:absolute;left:12px;bottom:140px;display:flex;gap:6px;pointer-events:auto}
+.seed{background:#234d32ef;border:2px solid #fff9;border-radius:12px;color:white;padding:8px 11px;font-size:20px}
+.seed.active{background:#c58b25;color:#241700}
+.hint{position:absolute;top:65px;left:50%;transform:translateX(-50%);background:#173b2ddd;border-radius:12px;padding:9px 13px;font-size:13px;white-space:nowrap;max-width:90vw;text-align:center}
+.modal{display:none;position:absolute;inset:0;background:#07190dcc;pointer-events:auto;align-items:center;justify-content:center;padding:18px}
+.modal.show{display:flex}
+.window{width:min(520px,96vw);max-height:85vh;overflow:auto;background:linear-gradient(145deg,#315e3a,#183a28);border:2px solid #e8d49a;border-radius:20px;padding:18px;box-shadow:0 15px 50px #0009}
+.window h2{margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.item{background:#ffffff16;border:1px solid #ffffff35;border-radius:13px;padding:11px}
+.item button,.wide{margin-top:7px;width:100%;border:0;border-radius:10px;background:#e7b84e;color:#38260c;padding:10px;font-weight:900}
+.close{float:right;background:#a84835!important;color:white!important}
+.small{font-size:12px;opacity:.85}
+.bar{height:8px;background:#ffffff30;border-radius:10px;overflow:hidden}
+.bar i{display:block;height:100%;background:#f5d16d;width:100%}
+#rotate{display:none;position:absolute;inset:0;background:#173b2d;color:white;align-items:center;justify-content:center;text-align:center;padding:30px;font-weight:800;pointer-events:auto}
+@media(orientation:portrait){#rotate{display:flex}#ui{visibility:hidden}}
+</style>
+</head>
+<body>
+
+<div id="ui">
+ <div class="top">
+  <div class="pill">🌻 ВЕСЁЛАЯ ФЕРМА</div>
+  <div class="pill">🪙 <span id="coins">150</span></div>
+  <div class="pill">🌾 <span id="harvest">0</span></div>
+  <button id="shopOpen">🏪 Магазин</button>
+  <button id="settingsOpen">⚙️</button>
+ </div>
+ <div class="hint" id="hint">Добро пожаловать! Подойди к грядке.</div>
+ <div class="seeds">
+  <button class="seed active" data-seed="1">🥕</button>
+  <button class="seed" data-seed="2">🌾</button>
+  <button class="seed" data-seed="3">🍅</button>
+ </div>
+ <div class="bottom">
+  <div class="joy" id="joy"><div class="stick" id="stick"></div></div>
+  <div class="actions">
+   <button class="act" id="action" title="Действие">✋</button>
+   <button class="act" id="water">💧</button>
+   <button class="act" id="feed">🌽</button>
+   <button class="act" id="sell">🪙</button>
+  </div>
+ </div>
+ <div class="modal" id="shop">
+  <div class="window">
+   <button class="close" id="shopClose">Закрыть ✕</button>
+   <h2>🏪 Магазин фермы</h2>
+   <p class="small">Покупай семена и животных. Покупки сохраняются на этом устройстве.</p>
+   <div class="grid" id="shopItems"></div>
+  </div>
+ </div>
+ <div class="modal" id="settings">
+  <div class="window">
+   <button class="close" id="settingsClose">Закрыть ✕</button>
+   <h2>⚙️ Настройки</h2>
+   <div class="item">
+    <b>Качество графики</b>
+    <select id="quality" class="wide">
+     <option value="low">Экономное</option>
+     <option value="medium" selected>Обычное</option>
+     <option value="high">Высокое</option>
+    </select>
+   </div>
+   <div class="item">
+    <b>Звук</b>
+    <p class="small">Звуковые эффекты добавим следующим обновлением.</p>
+   </div>
+   <div class="item">
+    <b>Админ-панель</b>
+    <p class="small">Демонстрационный вход. Пароль в коде игры не является настоящей защитой.</p>
+    <input id="adminPass" type="password" placeholder="Пароль администратора" class="wide">
+    <button id="adminLogin" class="wide">Войти</button>
+    <div id="adminArea" style="display:none">
+     <p>Режим администратора включён</p>
+     <button id="giveCoins" class="wide">+500 монет</button>
+     <button id="growAll" class="wide">Вырастить весь урожай</button>
+    </div>
+   </div>
+  </div>
+ </div>
+ <div id="rotate">📱<br><br>Поверни телефон горизонтально, чтобы играть удобнее.</div>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
-<script type="module">    
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';    
-const $=id=>document.getElementById(id);
- const socket = io();
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const $ = id => document.getElementById(id);
+
+// Онлайн-подключение
+const socket = io();
 const remotePlayers = new Map();
 
 socket.on('connect', () => {
-  console.log('🌐 Подключено к ферме:', socket.id);
-});
-socket.on('players:initial', players => {
-  players.forEach(p => makeRemotePlayer(p.id, p));
+  console.log('Подключено к ферме:', socket.id);
+  say('Ты подключился к общей ферме!');
 });
 
-socket.on('player:joined', p => {
-  makeRemotePlayer(p.id, p);
+socket.on('connect_error', error => {
+  console.error('Ошибка подключения:', error);
+  say('Нет соединения с сервером');
 });
 
-socket.on('player:update', p => {
-  makeRemotePlayer(p.id, p);
-});
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9bd8ef);
+scene.fog = new THREE.Fog(0x9bd8ef,55,125);
 
-socket.on('player:left', id => {
-  const g = remotePlayers.get(id);
+const camera = new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.1,180);
+const renderer = new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.prepend(renderer.domElement);
 
-  if (g) {
-    scene.remove(g);
-    remotePlayers.delete(id);
-  }
-});
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bd8ef);scene.fog=new THREE.Fog(0x9bd8ef,55,125);    
-const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.1,180);const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;document.body.prepend(renderer.domElement);    
-scene.add(new THREE.HemisphereLight(0xffffff,0x66824a,2.1));const sun=new THREE.DirectionalLight(0xfff3d6,2.3);sun.position.set(-22,35,18);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-45;sun.shadow.camera.right=45;sun.shadow.camera.top=45;sun.shadow.camera.bottom=-45;scene.add(sun);    
-const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.88});function mesh(geo,color,parent=scene,x=0,y=0,z=0){const m=new THREE.Mesh(geo,mat(color));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}function cube(parent,x,y,z,w,h,d,c){return mesh(new THREE.BoxGeometry(w,h,d),c,parent,x,y,z)}    
-// Landscape, fields and path    
-cube(scene,0,-.35,0,110,.55,100,0x78b94f);cube(scene,0,-.03,3,60,.12,4.5,0xd7b77c);cube(scene,0,-.02,-8,4,.12,34,0xd7b77c);    
-function house(x,z,color,scale=1){const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);cube(g,0,1.6,0,5*scale,3.2*scale,4*scale,color);const roof=mesh(new THREE.ConeGeometry(4*scale,2.3*scale,4),0x9a4934,g,0,3.9*scale,0);roof.rotation.y=Math.PI/4;cube(g,0,.9,2.02*scale,1.1*scale,1.8*scale,.12,0x67432c);cube(g,-1.35*scale,2,2.06*scale,.8*scale,.8*scale,.1,0x8bd2e7);cube(g,1.35*scale,2,2.06*scale,.8*scale,.8*scale,.1,0x8bd2e7)}house(-18,-18,0xe5bd79,1.2);house(0,-28,0xc5a16d,1.1);house(18,-17,0xb7a16e,1.05);    
-function tree(x,z){const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);mesh(new THREE.CylinderGeometry(.22,.32,2.2,7),0x79502e,g,0,1,0);mesh(new THREE.IcosahedronGeometry(1.8,1),0x347c38,g,0,3,0);mesh(new THREE.IcosahedronGeometry(1.15,1),0x4b963d,g,.8,3.2,.2)}for(let i=0;i<34;i++){let x=-48+(i%9)*12,z=-43+Math.floor(i/9)*17;if(Math.abs(x)<12&&z>0)continue;tree(x,z)}    
-function fence(x1,z1,x2,z2){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),n=Math.ceil(len/1.5);for(let i=0;i<=n;i++){let t=i/n;cube(scene,x1+dx*t,.55,z1+dz*t,.16,1.1,.16,0x80502d)}for(let y of [.35,.82]){const r=cube(scene,(x1+x2)/2,y,(z1+z2)/2,len,.13,.13,0xb77d43);r.rotation.y=-Math.atan2(dz,dx)}}function pen(a,b,c,d){fence(a,b,c,b);fence(a,b,a,d);fence(c,b,c,d);fence(a,d,c,d)}pen(9,-4,23,7);pen(-24,-4,-10,7);pen(10,14,24,27);    
-// Farm plot: 7 x 5 larger beds    
-const crops=[];const cropColors={1:0xff8b2c,2:0xe5c34e,3:0xe74738};for(let r=0;r<5;r++)for(let c=0;c<7;c++){const x=-9+c*2.65,z=10+r*2.55;cube(scene,x,-.01,z,2.3,.17,2.2,0x895638);const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);crops.push({x,z,type:0,planted:0,watered:false,g,visualStage:-1})}    
-// Player with articulated limbs    
-const player=new THREE.Group();scene.add(player);const torso=cube(player,0,1.08,0,.78,1.0,.43,0x347ac1);const head=mesh(new THREE.SphereGeometry(.34,16,12),0xf0c49b,player,0,1.86,0);const hat=mesh(new THREE.CylinderGeometry(.4,.43,.16,12),0xc58a36,player,0,2.2,0);const arms=[],legs=[];for(const s of [-1,1]){const arm=mesh(new THREE.CapsuleGeometry(.12,.48,4,8),0xe7b98f,player,s*.52,1.13,0);arm.rotation.z=s*.2;arms.push(arm);const leg=mesh(new THREE.CapsuleGeometry(.14,.48,4,8),0x304d77,player,s*.2,.38,0);legs.push(leg)}player.position.set(0,0,7);const remotePlayers = new Map();
+scene.add(new THREE.HemisphereLight(0xffffff,0x66824a,2.1));
+const sun = new THREE.DirectionalLight(0xfff3d6,2.3);
+sun.position.set(-22,35,18);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1536,1536);
+sun.shadow.camera.left = -45;
+sun.shadow.camera.right = 45;
+sun.shadow.camera.top = 45;
+sun.shadow.camera.bottom = -45;
+scene.add(sun);
 
-function makeRemotePlayer(id, data) {
-  if (id === socket.id) return;
+const mat = c => new THREE.MeshStandardMaterial({color:c,roughness:.88});
 
-  let g = remotePlayers.get(id);
-
-  if (!g) {
-    g = new THREE.Group();
-    scene.add(g);
-
-    cube(g,0,1.08,0,.78,1,.43,0x28a879);
-
-    mesh(
-      new THREE.SphereGeometry(.34,16,12),
-      0xf0c49b,g,0,1.86,0
-    );
-
-    mesh(
-      new THREE.CylinderGeometry(.4,.43,.16,12),
-      0xe5b84b,g,0,2.2,0
-    );
-
-    remotePlayers.set(id,g);
-  }
-
-  g.position.set(data.x,data.y,data.z);
-  g.rotation.y = data.rotation || 0;
-}  
-// Animal models, legs animate, wander and pause/forage    
-const animals=[];function animal(kind,x,z,color,bounds){const g=new THREE.Group();scene.add(g);const body=mesh(new THREE.SphereGeometry(kind==='chicken'?.42:.62,16,12),color,g,0,kind==='chicken'?.55:.8,0);body.scale.set(kind==='chicken'?1:1.45,kind==='chicken'?1:0.85,kind==='chicken'?1:1);const head=mesh(new THREE.SphereGeometry(kind==='chicken'?.23:.34,14,12),color,g,.25,kind==='chicken'?.95:1.18,-.52);if(kind==='cow'){for(const s of [-1,1])mesh(new THREE.SphereGeometry(.2,10,8),0x353535,g,s*.32,.9,.15);mesh(new THREE.SphereGeometry(.13,10,8),0xe8b5a5,g,.25,1.12,-.8)}if(kind==='pig')mesh(new THREE.SphereGeometry(.17,10,8),0xf08c9b,g,.25,1.15,-.82);if(kind==='chicken'){mesh(new THREE.ConeGeometry(.12,.25,5),0xd94b25,g,.25,1.2,-.7);mesh(new THREE.SphereGeometry(.12,8,8),0xc93a2b,g,.12,1.2,-.42)}const limbs=[];for(let i=0;i<4;i++){const leg=mesh(new THREE.CapsuleGeometry(.075,.32,3,6),kind==='chicken'?0xd99b35:0x59452e,g,(i%2?1:-1)*.34,.28,i<2?-.32:.32);limbs.push(leg)}g.position.set(x,0,z);animals.push({kind,g,x,z,b:bounds,angle:Math.random()*6.28,t:Math.random()*3,speed:.45+Math.random()*.5,limbs,phase:Math.random()*6,rest:0})}    
-for(let i=0;i<12;i++)animal('chicken',10+Math.random()*11,-2+Math.random()*7,0xf2e4c5,{a:9,b:23,c:-4,d:7});for(let i=0;i<5;i++)animal('cow',-23+Math.random()*12,-2+Math.random()*8,0xf4eee4,{a:-24,b:-10,c:-4,d:7});for(let i=0;i<5;i++)animal('pig',11+Math.random()*11,15+Math.random()*10,0xe99b9e,{a:10,b:24,c:14,d:27});    
-// Shop stock and persistent save    
-let coins=150,harvest=0,selected=1,owned={chicken:0,cow:0,pig:0};const seedNames={1:'Морковь',2:'Пшеница',3:'Помидоры'};function ui(){ $('coins').textContent=coins;$('harvest').textContent=harvest }function say(t){$('hint').textContent=t}function save(){localStorage.setItem('farm_v2',JSON.stringify({coins,harvest,owned,crops:crops.map(p=>({type:p.type,planted:p.planted,watered:p.watered}))}))}function load(){try{const d=JSON.parse(localStorage.getItem('farm_v2'));if(!d)return;coins=d.coins??150;harvest=d.harvest??0;owned=d.owned??owned;d.crops?.forEach((v,i)=>{if(crops[i])Object.assign(crops[i],v)})}catch{}}load();ui();    
-const goods=[{name:'Курица',emoji:'🐔',price:45,kind:'chicken',desc:'Несёт яйца (пока декоративно)'},{name:'Корова',emoji:'🐄',price:120,kind:'cow',desc:'Животное для коровника'},{name:'Свинья',emoji:'🐷',price:90,kind:'pig',desc:'Пополнит свинарник'},{name:'Пакет семян',emoji:'🌱',price:25,kind:'seeds',desc:'Плюс 5 посадок в запас'}];function renderShop(){$('shopItems').innerHTML=goods.map((v,i)=>`<div class="item"><div style="font-size:26px">${v.emoji} <b>${v.name}</b></div><div class="small">${v.desc}</div><b>🪙 ${v.price}</b><button data-buy="${i}">Купить</button></div>`).join('');$('shopItems').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(+b.dataset.buy))}function buy(i){const v=goods[i];if(coins<v.price){say('Не хватает монет!');return}coins-=v.price;if(v.kind==='seeds'){harvest+=5;say('Куплено 5 пакетов семян!')}else{owned[v.kind]++;let x=v.kind==='chicken'?14:v.kind==='cow'?-17:17,z=v.kind==='chicken'?0:v.kind==='cow'?1:20;animal(v.kind,x+(Math.random()-.5)*3,z+(Math.random()-.5)*3,v.kind==='cow'?0xf4eee4:v.kind==='pig'?0xe99b9e:0xf2e4c5,v.kind==='cow'?{a:-24,b:-10,c:-4,d:7}:v.kind==='pig'?{a:10,b:24,c:14,d:27}:{a:9,b:23,c:-4,d:7});say(v.name+' куплен!')}ui();save()}    
-$('shopOpen').onclick=()=>{$('shop').classList.add('show');renderShop()};$('shopClose').onclick=()=>$('shop').classList.remove('show');$('settingsOpen').onclick=()=>$('settings').classList.add('show');$('settingsClose').onclick=()=>$('settings').classList.remove('show');    
-// Admin login: client-side demo gate, not secure against source inspection    
-$('adminLogin').onclick=()=>{if($('adminPass').value==='lop1lop2'){$('adminArea').style.display='block';say('Админ-панель открыта')}else say('Неверный пароль')};$('giveCoins').onclick=()=>{coins+=500;ui();save();say('+500 монет')};$('growAll').onclick=()=>{crops.forEach(p=>{if(p.type){p.planted=Date.now()-60000;p.watered=true}});say('Весь урожай созрел')};$('quality').onchange=e=>{const q=e.target.value;renderer.setPixelRatio(Math.min(devicePixelRatio,q==='high'?2:q==='medium'?1.5:1));sun.castShadow=q!=='low';renderer.shadowMap.enabled=q!=='low';renderer.shadowMap.needsUpdate=true};    
-document.querySelectorAll('.seed').forEach(b=>b.onclick=()=>{selected=+b.dataset.seed;document.querySelectorAll('.seed').forEach(x=>x.classList.toggle('active',x===b));say('Выбрано: '+seedNames[selected])});    
-// Touch joystick with pointer capture and independent camera drag    
-const joy=$('joy'),stick=$('stick');let joyId=null,move={x:0,y:0};function joyMove(e){const r=joy.getBoundingClientRect();let x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2),m=34,l=Math.hypot(x,y);if(l>m){x=x/l*m;y=y/l*m}move.x=x/m;move.y=y/m;stick.style.transform=`translate(${x}px,${y}px)`}joy.onpointerdown=e=>{joyId=e.pointerId;joy.setPointerCapture(e.pointerId);joyMove(e)};joy.onpointermove=e=>{if(e.pointerId===joyId)joyMove(e)};function joyEnd(e){if(e.pointerId!==joyId)return;joyId=null;move={x:0,y:0};stick.style.transform='translate(0,0)'}joy.onpointerup=joyEnd;joy.onpointercancel=joyEnd;    
-let camId=null,lastX=0,lastY=0,yaw=0,pitch=.57;renderer.domElement.addEventListener('pointerdown',e=>{camId=e.pointerId;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==camId)return;yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,.28,.95);lastX=e.clientX;lastY=e.clientY});function camEnd(e){if(e.pointerId===camId)camId=null}renderer.domElement.addEventListener('pointerup',camEnd);renderer.domElement.addEventListener('pointercancel',camEnd);    
-function closestCrop(){let found=null,dmin=2.9;for(const p of crops){let d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<dmin){found=p;dmin=d}}return found}function act(){const p=closestCrop();if(!p){say('Подойди ближе к грядке');return}if(!p.type){p.type=selected;p.planted=Date.now();p.watered=false;say(seedNames[selected]+' посажены!')}else if(Date.now()-p.planted>growth(p)){harvest++;coins+=10;p.type=0;p.g.clear();p.visualStage=-1;say('Урожай собран! +10 монет')}else say('Растение ещё растёт');ui();save()}function growth(p){return ({1:18000,2:23000,3:27000}[p.type]||20000)*(p.watered?.65:1)}function water(){const p=closestCrop();if(!p||!p.type){say('Сначала посади растение');return}p.watered=true;say('Полито! Рост ускорен');save()}function feed(){let a=animals.sort((a,b)=>Math.hypot(player.position.x-a.x,player.position.z-a.z)-Math.hypot(player.position.x-b.x,player.position.z-b.z))[0];if(!a||Math.hypot(player.position.x-a.x,player.position.z-a.z)>4){say('Подойди к животному');return}a.rest=1.8;say('Животное довольно хрустит кормом 🌽')}function sell(){if(!harvest){say('Пока нечего продавать');return}coins+=harvest*12;harvest=0;ui();save();say('Урожай продан! Деньги зачислены')}$('action').onclick=act;$('water').onclick=water;$('feed').onclick=feed;$('sell').onclick=sell;    
-// Crop visuals update only when growth stage changes    
-function updateCrops(){for(const p of crops){if(!p.type)continue;const prog=Math.min(1,(Date.now()-p.planted)/growth(p));const stage=prog<.35?0:prog<.72?1:2;if(stage===p.visualStage)continue;p.visualStage=stage;p.g.clear();const h=[.35,.85,1.35][stage];mesh(new THREE.CylinderGeometry(.07,.11,h,7),0x36963b,p.g,0,h/2,0);for(let k=0;k<3+stage*2;k++){const leaf=mesh(new THREE.SphereGeometry(.2+stage*.06,8,7),0x55ad42,p.g,Math.sin(k*2.1)*.3,h*.55+(k%2)*.12,Math.cos(k*2.1)*.3);leaf.scale.set(1.4,.42,.7)}if(stage===2)for(let k=0;k<2;k++)mesh(new THREE.SphereGeometry(.22,10,8),cropColors[p.type],p.g,k===0?-.2:.2,h+.1,k===0?.1:-.1)}}    
-function updateAnimals(dt,t){for(const a of animals){a.t-=dt;if(a.rest>0){a.rest-=dt;a.g.rotation.y+=dt*.5;continue}if(a.t<=0){a.angle=Math.random()*Math.PI*2;a.t=2+Math.random()*4;if(Math.random()<.2)a.rest=.8+Math.random()*1.5}const nx=a.x+Math.sin(a.angle)*a.speed*dt,nz=a.z+Math.cos(a.angle)*a.speed*dt;if(nx>a.b.a&&nx<a.b.b&&nz>a.b.c&&nz<a.b.d){a.x=nx;a.z=nz;a.g.position.set(nx,0,nz);a.g.rotation.y=a.angle}else a.angle+=Math.PI*.7;const walking=a.t>0&&a.rest<=0;a.limbs.forEach((leg,i)=>{leg.rotation.x=walking?Math.sin(t*8+(i%2)*Math.PI)*.55:Math.sin(t*2+i)*.035});a.g.position.y=Math.abs(Math.sin(t*8))*0.035*(walking?1:0)}}    
-function updatePlayer(dt,t){let f=-move.y,s=move.x,dx=s*Math.cos(yaw)+f*Math.sin(yaw),dz=-s*Math.sin(yaw)+f*Math.cos(yaw),l=Math.hypot(dx,dz),walking=l>.12;if(walking){dx/=l;dz/=l;player.position.x+=dx*6*dt;player.position.z+=dz*6*dt;player.rotation.y=Math.atan2(dx,dz)}player.position.x=THREE.MathUtils.clamp(player.position.x,-48,48);player.position.z=THREE.MathUtils.clamp(player.position.z,-45,45);arms.forEach((a,i)=>a.rotation.x=walking?Math.sin(t*10+i*Math.PI)*.65:0);legs.forEach((a,i)=>a.rotation.x=walking?Math.sin(t*10+i*Math.PI)*.65:0);player.position.y=walking?Math.abs(Math.sin(t*10))*.035:0}    
-let lastNetworkUpdate = 0;
-
-function sendPlayerPosition(now) {
-  if (!socket.connected || now - lastNetworkUpdate < 50) return;
-
-  lastNetworkUpdate = now;
-
-  socket.emit('player:update', {
-    x: player.position.x,
-    y: player.position.y,
-    z: player.position.z,
-    rotation: player.rotation.y,
-    name: 'Фермер'
-  });
+function mesh(geo,color,parent=scene,x=0,y=0,z=0){
+ const m = new THREE.Mesh(geo,mat(color));
+ m.position.set(x,y,z);
+ m.castShadow = true;
+ m.receiveShadow = true;
+ parent.add(m);
+ return m;
 }
- function updateCamera(){const d=11,h=d*Math.cos(pitch);const target=new THREE.Vector3(player.position.x-Math.sin(yaw)*h,player.position.y+ d*Math.sin(pitch),player.position.z-Math.cos(yaw)*h);camera.position.lerp(target,.12);camera.lookAt(player.position.x,player.position.y+1,player.position.z)}let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;const t=now/1000;updatePlayer(dt,t);sendPlayerPosition(now);updateAnimals(dt,t);updateCrops();updateCamera();renderer.render(scene,camera)}camera.position.set(0,10,18);loop(performance.now());window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7))});    
-</script></body></html>
+
+function cube(parent,x,y,z,w,h,d,c){
+ return mesh(new THREE.BoxGeometry(w,h,d),c,parent,x,y,z);
+}
+
+// Земля и дорожки
+cube(scene,0,-.35,0,110,.55,100,0x78b94f);
+cube(scene,0,-.03,3,60,.12,4.5,0xd7b77c);
+cube(scene,0,-.02,-8,4,.12,34,0xd7b77c);
+
+// Дома
+function house(x,z,color,scale=1){
+ const g = new THREE.Group();
+ scene.add(g);
+ g.position.set(x,0,z);
+ cube(g,0,1.6,0,5*scale,3.2*scale,4*scale,color);
+ const roof = mesh(new THREE.ConeGeometry(4*scale,2.3*scale,4),0x9a4934,g,0,3.9*scale,0);
+ roof.rotation.y = Math.PI/4;
+ cube(g,0,.9,2.02*scale,1.1*scale,1.8*scale,.12,0x67432c);
+ cube(g,-1.35*scale,2,2.06*scale,.8*scale,.8*scale,.1,0x8bd2e7);
+ cube(g,1.35*scale,2,2.06*scale,.8*scale,.8*scale,.1,0x8bd2e7);
+}
+house(-18,-18,0xe5bd79,1.2);
+house(0,-28,0xc5a16d,1.1);
+house(18,-17,0xb7a16e,1.05);
+
+// Деревья
+function tree(x,z){
+ const g = new THREE.Group();
+ scene.add(g);
+ g.position.set(x,0,z);
+ mesh(new THREE.CylinderGeometry(.22,.32,2.2,7),0x79502e,g,0,1,0);
+ mesh(new THREE.IcosahedronGeometry(1.8,1),0x347c38,g,0,3,0);
+ mesh(new THREE.IcosahedronGeometry(1.15,1),0x4b963d,g,.8,3.2,.2);
+}
+for(let i=0;i<34;i++){
+ let x=-48+(i%9)*12;
+ let z=-43+Math.floor(i/9)*17;
+ if(Math.abs(x)<12&&z>0)continue;
+ tree(x,z);
+}
+
+// Заборы
+function fence(x1,z1,x2,z2){
+ const dx=x2-x1,dz=z2-z1;
+ const len=Math.hypot(dx,dz);
+ const n=Math.ceil(len/1.5);
+ for(let i=0;i<=n;i++){
+  let t=i/n;
+  cube(scene,x1+dx*t,.55,z1+dz*t,.16,1.1,.16,0x80502d);
+ }
+ for(let y of [.35,.82]){
+  const r=cube(scene,(x1+x2)/2,y,(z1+z2)/2,len,.13,.13,0xb77d43);
+  r.rotation.y=-Math.atan2(dz,dx);
+ }
+}
+function pen(a,b,c,d){
+ fence(a,b,c,b);
+ fence(a,b,a,d);
+ fence(c,b,c,d);
+ fence(a,d,c,d);
+}
+pen(9,-4,23,7);
+pen(-24,-4,-10,7);
+pen(10,14,24,27);
+
+// Грядки
+const crops=[];
+const cropColors={1:0xff8b2c,2:0xe5c34e,3:0xe74738};
+
+for(let r=0;r<5;r++){
+ for(let c=0;c<7;c++){
+  const x=-9+c*2.65,z=10+r*2.55;
+  cube(scene,x,-.01,z,2.3,.17,2.2,0x895638);
+  const g=new THREE.Group();
+  g.position.set(x,0,z);
+  scene.add(g);
+  crops.push({x,z,type:0,planted:0,watered:false,g,visualStage:-1});
+ }
+}
+
+// Игрок
+const player=new THREE.Group();
+scene.add(player);
+
+cube(player,0,1.08,0,.78,1.0,.43,0x347ac1);
+mesh(new THREE.SphereGeometry(.34,16,12),0xf0c49b,player,0,1.86,0);
+mesh(new THREE.CylinderGeometry(.4,.43,.16,12),0xc58a36,player,0,2.2,0);
+
+const arms=[],legs=[];
+for(const s of [-1,1]){
+ const arm=mesh(new THREE.CapsuleGeometry(.12,.48,4,8),0xe7b98f,player,s*.52,1.13,0);
+ arm.rotation.z=s*.2;
+ arms.push(arm);
+ const leg=mesh(new THREE.CapsuleGeometry(.14,.48,4,8),0x304d77,player,s*.2,.38,0);
+ legs.push(leg);
+}
+player.position.set(0,0,7);
+
+// Другие игроки
+function makeRemotePlayer(id,data){
+ if(id===socket.id)return;
+
+ let g=remotePlayers.get(id);
+
+ if(!g){
+  g=new THREE.Group();
+  scene.add(g);
+
+  cube(g,0,1.08,0,.78,1,.43,0x28a879);
+  mesh(new THREE.SphereGeometry(.34,16,12),0xf0c49b,g,0,1.86,0);
+  mesh(new THREE.CylinderGeometry(.4,.43,.16,12),0xe5b84b,g,0,2.2,0);
+
+  remotePlayers.set(id,g);
+ }
+
+ g.position.set(data.x||0,data.y||0,data.z||0);
+ g.rotation.y=data.rotation||0;
+}
+
+socket.on('players:initial',players=>{
+ players.forEach(p=>makeRemotePlayer(p.id,p));
+});
+
+socket.on('player:joined',p=>{
+ makeRemotePlayer(p.id,p);
+});
+
+socket.on('player:update',p=>{
+ makeRemotePlayer(p.id,p);
+});
+
+socket.on('player:left',id=>{
+ const g=remotePlayers.get(id);
+ if(g){
+  scene.remove(g);
+  remotePlayers.delete(id);
+ }
+});
+
+// Животные
+const animals=[];
+
+function animal(kind,x,z,color,bounds){
+ const g=new THREE.Group();
+ scene.add(g);
+
+ const body=mesh(new THREE.SphereGeometry(kind==='chicken'?.42:.62,16,12),color,g,0,kind==='chicken'?.55:.8,0);
+ body.scale.set(kind==='chicken'?1:1.45,kind==='chicken'?1:.85,kind==='chicken'?1:1);
+
+ mesh(new THREE.SphereGeometry(kind==='chicken'?.23:.34,14,12),color,g,.25,kind==='chicken'?.95:1.18,-.52);
+
+ if(kind==='cow'){
+  for(const s of [-1,1])mesh(new THREE.SphereGeometry(.2,10,8),0x353535,g,s*.32,.9,.15);
+  mesh(new THREE.SphereGeometry(.13,10,8),0xe8b5a5,g,.25,1.12,-.8);
+ }
+ if(kind==='pig)'){
+  mesh(new THREE.SphereGeometry(.17,10,8),0xf08c9b,g,.25,1.15,-.82);
+ }
+ if(kind==='chicken'){
+  mesh(new THREE.ConeGeometry(.12,.25,5),0xd94b25,g,.25,1.2,-.7);
+  mesh(new THREE.SphereGeometry(.12,8,8),0xc93a2b,g,.12,1.2,-.42);
+ }
+
+ const limbs=[];
+ for(let i=0;i<4;i++){
+  const leg=mesh(new THREE.CapsuleGeometry(.075,.32,3,6),kind==='chicken'?0xd99b35:0x59452e,g,(i%2?1:-1)*.34,.28,i<2?-.32:.32);
+  limbs.push(leg);
+ }
+
+ g.position.set(x,0,z);
+ animals.push({kind,g,x,z,b:bounds,angle:Math.random()*6.28,t:Math.random()*3,speed:.45+Math.random()*.5,limbs,phase:Math.random()*6,rest:0});
+}
+
+for(let i=0;i<12;i++)animal('chicken',10+Math.random()*11,-2+Math.random()*7,0xf2e4c5,{a:9,b:23,c:-4,d:7});
+for(let i=0;i<5;i++)animal('cow',-23+Math.random()*12,-2+Math.random()*8,0xf4eee4,{a:-24,b:-10,c:-4,d:7});
+for(let i=0;i<5;i++)animal('pig',11+Math.random()*11,15+Math.random()*10,0xe99b9e,{a:10,b:24,c:14,d:27});
+
+// Сохранение
+let coins=150,harvest=0,selected=1;
+let owned={chicken:0,cow:0,pig:0};
+
+const seedNames={1:'Морковь',2:'Пшеница',3:'Помидоры'};
+
+function ui(){
+ $('coins').textContent=coins;
+ $('harvest').textContent=harvest;
+}
+function say(t){
+ $('hint').textContent=t;
+}
+function save(){
+ localStorage.setItem('farm_v2',JSON.stringify({
+  coins,harvest,owned,
+  crops:crops.map(p=>({type:p.type,planted:p.planted,watered:p.watered}))
+ }));
+}
+function load(){
+ try{
+  const d=JSON.parse(localStorage.getItem('farm_v2'));
+  if(!d)return;
+  coins=d.coins??150;
+  harvest=d.harvest??0;
+  owned=d.owned??owned;
+  d.crops?.forEach((v,i)=>{
+   if(crops[i])Object.assign(crops[i],v);
+  });
+ }catch(e){
+  console.warn('Ошибка загрузки сохранения:',e);
+ }
+}
+load();
+ui();
+
+// Магазин
+const goods=[
+ {name:'Курица',emoji:'🐔',price:45,kind:'chicken',desc:'Декоративное животное'},
+ {name:'Корова',emoji:'🐄',price:120,kind:'cow',desc:'Животное для коровника'},
+ {name:'Свинья',emoji:'🐷',price:90,kind:'pig',desc:'Пополнит свинарник'},
+ {name:'Пакет семян',emoji:'🌱',price:25,kind:'seeds',desc:'Плюс 5 к урожаю'}
+];
+
+function renderShop(){
+ $('shopItems').innerHTML=goods.map((v,i)=>`
+  <div class="item">
+   <div style="font-size:26px">${v.emoji} <b>${v.name}</b></div>
+   <div class="small">${v.desc}</div>
+   <b>🪙 ${v.price}</b>
+   <button data-buy="${i}">Купить</button>
+  </div>
+ `).join('');
+
+ $('shopItems').querySelectorAll('[data-buy]').forEach(b=>{
+  b.onclick=()=>buy(+b.dataset.buy);
+ });
+}
+
+function buy(i){
+ const v=goods[i];
+ if(coins<v.price){
+  say('Не хватает монет!');
+  return;
+ }
+
+ coins-=v.price;
+
+ if(v.kind==='seeds'){
+  harvest+=5;
+  say('Куплено 5 пакетов семян!');
+ }else{
+  owned[v.kind]++;
+  let x=v.kind==='chicken'?14:v.kind==='cow'?-17:17;
+  let z=v.kind==='chicken'?0:v.kind==='cow'?1:20;
+
+  animal(v.kind,x+(Math.random()-.5)*3,z+(Math.random()-.5)*3,
+   v.kind==='cow'?0xf4eee4:v.kind==='pig'?0xe99b9e:0xf2e4c5,
+   v.kind==='cow'?{a:-24,b:-10,c:-4,d:7}:v.kind==='pig'?{a:10,b:24,c:14,d:27}:{a:9,b:23,c:-4,d:7}
+  );
+  say(v.name+' куплен!');
+ }
+
+ ui();
+ save();
+}
+
+$('shopOpen').onclick=()=>{
+ $('shop').classList.add('show');
+ renderShop();
+};
+$('shopClose').onclick=()=>$('shop').classList.remove('show');
+$('settingsOpen').onclick=()=>$('settings').classList.add('show');
+$('settingsClose').onclick=()=>$('settings').classList.remove('show');
+
+// Админ-панель
+$('adminLogin').onclick=()=>{
+ if($('adminPass').value==='lop1lop2'){
+  $('adminArea').style.display='block';
+  say('Админ-панель открыта');
+ }else{
+  say('Неверный пароль');
+ }
+};
+$('giveCoins').onclick=()=>{
+ coins+=500;
+ ui();
+ save();
+ say('+500 монет');
+};
+$('growAll').onclick=()=>{
+ crops.forEach(p=>{
+  if(p.type){
+   p.planted=Date.now()-60000;
+   p.watered=true;
+   p.visualStage=-1;
+  }
+ });
+ say('Весь урожай созрел');
+};
+
+$('quality').onchange=e=>{
+ const q=e.target.value;
+ renderer.setPixelRatio(Math.min(devicePixelRatio,q==='high'?2:q==='medium'?1.5:1));
+ sun.castShadow=q!=='low';
+ renderer.shadowMap.enabled=q!=='low';
+ renderer.shadowMap.needsUpdate=true;
+};
+
+// Выбор семян
+document.querySelectorAll('.seed').forEach(b=>{
+ b.onclick=()=>{
+  selected=+b.dataset.seed;
+  document.querySelectorAll('.seed').forEach(x=>x.classList.toggle('active',x===b));
+  say('Выбрано: '+seedNames[selected]);
+ };
+});
+
+// Джойстик
+const joy=$('joy'),stick=$('stick');
+let joyId=null,move={x:0,y:0};
+
+function joyMove(e){
+ const r=joy.getBoundingClientRect();
+ let x=e.clientX-(r.left+r.width/2);
+ let y=e.clientY-(r.top+r.height/2);
+ const m=34,l=Math.hypot(x,y);
+ if(l>m){x=x/l*m;y=y/l*m}
+ move.x=x/m;
+ move.y=y/m;
+ stick.style.transform=`translate(${x}px,${y}px)`;
+}
+
+joy.onpointerdown=e=>{
+ joyId=e.pointerId;
+ joy.setPointerCapture(e.pointerId);
+ joyMove(e);
+};
+joy.onpointermove=e=>{
+ if(e.pointerId===joyId)joyMove(e);
+};
+function joyEnd(e){
+ if(e.pointerId!==joyId)return;
+ joyId=null;
+ move={x:0,y:0};
+ stick.style.transform='translate(0,0)';
+}
+joy.onpointerup=joyEnd;
+joy.onpointercancel=joyEnd;
+
+// Управление камерой
+let camId=null,lastX=0,lastY=0,yaw=0,pitch=.57;
+
+renderer.domElement.addEventListener('pointerdown',e=>{
+ camId=e.pointerId;
+ lastX=e.clientX;
+ lastY=e.clientY;
+ renderer.domElement.setPointerCapture(e.pointerId);
+});
+renderer.domElement.addEventListener('pointermove',e=>{
+ if(e.pointerId!==camId)return;
+ yaw-=(e.clientX-lastX)*.006;
+ pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,.28,.95);
+ lastX=e.clientX;
+ lastY=e.clientY;
+});
+function camEnd(e){
+ if(e.pointerId===camId)camId=null;
+}
+renderer.domElement.addEventListener('pointerup',camEnd);
+renderer.domElement.addEventListener('pointercancel',camEnd);
+
+// Грядки и действия
+function closestCrop(){
+ let found=null,dmin=2.9;
+ for(const p of crops){
+  const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);
+  if(d<dmin){found=p;dmin=d}
+ }
+ return found;
+}
+
+function growth(p){
+ return ({1:18000,2:23000,3:27000}[p.type]||20000)*(p.watered?.65:1);
+}
+
+function act(){
+ const p=closestCrop();
+ if(!p){
+  say('Подойди ближе к грядке');
+  return;
+ }
+ if(!p.type){
+  p.type=selected;
+  p.planted=Date.now();
+  p.watered=false;
+  p.visualStage=-1;
+  say(seedNames[selected]+' посажены!');
+ }else if(Date.now()-p.planted>growth(p)){
+  harvest++;
+  coins+=10;
+  p.type=0;
+  p.g.clear();
+  p.visualStage=-1;
+  say('Урожай собран! +10 монет');
+ }else{
+  say('Растение ещё растёт');
+ }
+ ui();
+ save();
+}
+
+function water(){
+ const p=closestCrop();
+ if(!p||!p.type){
+  say('Сначала посади растение');
+  return;
+ }
+ p.watered=true;
+ p.visualStage=-1;
+ say('Полито! Рост ускорен');
+ save();
+}
+
+function feed(){
+ const a=[...animals].sort((a,b)=>
+  Math.hypot(player.position.x-a.x,player.position.z-a.z)-
+  Math.hypot(player.position.x-b.x,player.position.z-b.z)
+ )[0];
+
+ if(!a||Math.hypot(player.position.x-a.x,player.position.z-a.z)>4){
+  say('Подойди к животному');
+  return;
+ }
+ a.rest=1.8;
+ say('Животное довольно хрустит кормом 🌽');
+}
+
+function sell(){
+ if(!harvest){
+  say('Пока нечего продавать');
+  return;
+ }
+ coins+=harvest*12;
+ harvest=0;
+ ui();
+ save();
+ say('Урожай продан! Деньги зачислены');
+}
+
+$('action').onclick=act;
+$('water').onclick=water;
+$('feed').onclick=feed;
+$('sell').onclick=sell;
+
+// Рост растений
+function updateCrops(){
+ for(const p of crops){
+  if(!p.type)continue;
+
+  const prog=Math.min(1,(Date.now()-p.planted)/growth(p));
+  const stage=prog<.35?0:prog<.72?1:2;
+
+  if(stage===p.visualStage)continue;
+  p.visualStage=stage;
+  p.g.clear();
+
+  const h=[.35,.85,1.35][stage];
+  mesh(new THREE.CylinderGeometry(.07,.11,h,7),0x36963b,p.g,0,h/2,0);
+
+  for(let k=0;k<3+stage*2;k++){
+   const leaf=mesh(new THREE.SphereGeometry(.2+stage*.06,8,7),0x55ad42,p.g,Math.sin(k*2.1)*.3,h*.55+(k%2)*.12,Math.cos(k*2.1)*.3);
+   leaf.scale.set(1.4,.42,.7);
+  }
+
+  if(stage===2){
+   for(let k=0;k<2;k++){
+    mesh(new THREE.SphereGeometry(.22,10,8),cropColors[p.type],p.g,k===0?-.2:.2,h+.1,k===0?.1:-.1);
+   }
+  }
+ }
+}
+
+// Движение животных
+function updateAnimals(dt,t){
+ for(const a of animals){
+  a.t-=dt;
+
+  if(a.rest>0){
+   a.rest-=dt;
+   a.g.rotation.y+=dt*.5;
+   continue;
+  }
+
+  if(a.t<=0){
+   a.angle=Math.random()*Math.PI*2;
+   a.t=2+Math.random()*4;
+   if(Math.random()<.2)a.rest=.8+Math.random()*1.5;
+  }
+
+  const nx=a.x+Math.sin(a.angle)*a.speed*dt;
+  const nz=a.z+Math.cos(a.angle)*a.speed*dt;
+
+  if(nx>a.b.a&&nx<a.b.b&&nz>a.b.c&&nz<a.b.d){
+   a.x=nx;
+   a.z=nz;
+   a.g.position.set(nx,0,nz);
+   a.g.rotation.y=a.angle;
+  }else{
+   a.angle+=Math.PI*.7;
+  }
+
+  const walking=a.t>0&&a.rest<=0;
+  a.limbs.forEach((leg,i)=>{
+   leg.rotation.x=walking?Math.sin(t*8+(i%2)*Math.
