@@ -52,7 +52,35 @@ function fence(x1,z1,x2,z2){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),n=Math
 // Farm plot: 7 x 5 larger beds    
 const crops=[];const cropColors={1:0xff8b2c,2:0xe5c34e,3:0xe74738};for(let r=0;r<5;r++)for(let c=0;c<7;c++){const x=-9+c*2.65,z=10+r*2.55;cube(scene,x,-.01,z,2.3,.17,2.2,0x895638);const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);crops.push({x,z,type:0,planted:0,watered:false,g,visualStage:-1})}    
 // Player with articulated limbs    
-const player=new THREE.Group();scene.add(player);const torso=cube(player,0,1.08,0,.78,1.0,.43,0x347ac1);const head=mesh(new THREE.SphereGeometry(.34,16,12),0xf0c49b,player,0,1.86,0);const hat=mesh(new THREE.CylinderGeometry(.4,.43,.16,12),0xc58a36,player,0,2.2,0);const arms=[],legs=[];for(const s of [-1,1]){const arm=mesh(new THREE.CapsuleGeometry(.12,.48,4,8),0xe7b98f,player,s*.52,1.13,0);arm.rotation.z=s*.2;arms.push(arm);const leg=mesh(new THREE.CapsuleGeometry(.14,.48,4,8),0x304d77,player,s*.2,.38,0);legs.push(leg)}player.position.set(0,0,7);    
+const player=new THREE.Group();scene.add(player);const torso=cube(player,0,1.08,0,.78,1.0,.43,0x347ac1);const head=mesh(new THREE.SphereGeometry(.34,16,12),0xf0c49b,player,0,1.86,0);const hat=mesh(new THREE.CylinderGeometry(.4,.43,.16,12),0xc58a36,player,0,2.2,0);const arms=[],legs=[];for(const s of [-1,1]){const arm=mesh(new THREE.CapsuleGeometry(.12,.48,4,8),0xe7b98f,player,s*.52,1.13,0);arm.rotation.z=s*.2;arms.push(arm);const leg=mesh(new THREE.CapsuleGeometry(.14,.48,4,8),0x304d77,player,s*.2,.38,0);legs.push(leg)}player.position.set(0,0,7);const remotePlayers = new Map();
+
+function makeRemotePlayer(id, data) {
+  if (id === socket.id) return;
+
+  let g = remotePlayers.get(id);
+
+  if (!g) {
+    g = new THREE.Group();
+    scene.add(g);
+
+    cube(g,0,1.08,0,.78,1,.43,0x28a879);
+
+    mesh(
+      new THREE.SphereGeometry(.34,16,12),
+      0xf0c49b,g,0,1.86,0
+    );
+
+    mesh(
+      new THREE.CylinderGeometry(.4,.43,.16,12),
+      0xe5b84b,g,0,2.2,0
+    );
+
+    remotePlayers.set(id,g);
+  }
+
+  g.position.set(data.x,data.y,data.z);
+  g.rotation.y = data.rotation || 0;
+}  
 // Animal models, legs animate, wander and pause/forage    
 const animals=[];function animal(kind,x,z,color,bounds){const g=new THREE.Group();scene.add(g);const body=mesh(new THREE.SphereGeometry(kind==='chicken'?.42:.62,16,12),color,g,0,kind==='chicken'?.55:.8,0);body.scale.set(kind==='chicken'?1:1.45,kind==='chicken'?1:0.85,kind==='chicken'?1:1);const head=mesh(new THREE.SphereGeometry(kind==='chicken'?.23:.34,14,12),color,g,.25,kind==='chicken'?.95:1.18,-.52);if(kind==='cow'){for(const s of [-1,1])mesh(new THREE.SphereGeometry(.2,10,8),0x353535,g,s*.32,.9,.15);mesh(new THREE.SphereGeometry(.13,10,8),0xe8b5a5,g,.25,1.12,-.8)}if(kind==='pig')mesh(new THREE.SphereGeometry(.17,10,8),0xf08c9b,g,.25,1.15,-.82);if(kind==='chicken'){mesh(new THREE.ConeGeometry(.12,.25,5),0xd94b25,g,.25,1.2,-.7);mesh(new THREE.SphereGeometry(.12,8,8),0xc93a2b,g,.12,1.2,-.42)}const limbs=[];for(let i=0;i<4;i++){const leg=mesh(new THREE.CapsuleGeometry(.075,.32,3,6),kind==='chicken'?0xd99b35:0x59452e,g,(i%2?1:-1)*.34,.28,i<2?-.32:.32);limbs.push(leg)}g.position.set(x,0,z);animals.push({kind,g,x,z,b:bounds,angle:Math.random()*6.28,t:Math.random()*3,speed:.45+Math.random()*.5,limbs,phase:Math.random()*6,rest:0})}    
 for(let i=0;i<12;i++)animal('chicken',10+Math.random()*11,-2+Math.random()*7,0xf2e4c5,{a:9,b:23,c:-4,d:7});for(let i=0;i<5;i++)animal('cow',-23+Math.random()*12,-2+Math.random()*8,0xf4eee4,{a:-24,b:-10,c:-4,d:7});for(let i=0;i<5;i++)animal('pig',11+Math.random()*11,15+Math.random()*10,0xe99b9e,{a:10,b:24,c:14,d:27});    
