@@ -15,6 +15,7 @@
  <div class="modal" id="settings"><div class="window"><button class="close" id="settingsClose">Закрыть ✕</button><h2>⚙️ Настройки</h2><div class="item"><b>Качество графики</b><select id="quality" class="wide"><option value="low">Экономное</option><option value="medium" selected>Обычное</option><option value="high">Высокое</option></select></div><div class="item"><b>Звук</b><p class="small">Звуковые эффекты добавим следующим обновлением.</p></div><div class="item"><b>Админ-панель</b><p class="small">Вход по паролю. Пароль сейчас хранится в коде игры, поэтому это не настоящая защита от посторонних.</p><input id="adminPass" type="password" placeholder="Пароль администратора" class="wide"><button id="adminLogin" class="wide">Войти</button><div id="adminArea" style="display:none"><p>Режим администратора включён</p><button id="giveCoins" class="wide">+500 монет</button><button id="growAll" class="wide">Вырастить весь урожай</button></div></div></div></div>    
  <div id="rotate">📱<br><br>Поверни телефон горизонтально, чтобы играть удобнее.</div>    
 </div>    
+<script src="/socket.io/socket.io.js"></script>
 <script type="module">    
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';    
 const $=id=>document.getElementById(id);const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bd8ef);scene.fog=new THREE.Fog(0x9bd8ef,55,125);    
