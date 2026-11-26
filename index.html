@@ -71,5 +71,20 @@ function closestCrop(){let found=null,dmin=2.9;for(const p of crops){let d=Math.
 function updateCrops(){for(const p of crops){if(!p.type)continue;const prog=Math.min(1,(Date.now()-p.planted)/growth(p));const stage=prog<.35?0:prog<.72?1:2;if(stage===p.visualStage)continue;p.visualStage=stage;p.g.clear();const h=[.35,.85,1.35][stage];mesh(new THREE.CylinderGeometry(.07,.11,h,7),0x36963b,p.g,0,h/2,0);for(let k=0;k<3+stage*2;k++){const leaf=mesh(new THREE.SphereGeometry(.2+stage*.06,8,7),0x55ad42,p.g,Math.sin(k*2.1)*.3,h*.55+(k%2)*.12,Math.cos(k*2.1)*.3);leaf.scale.set(1.4,.42,.7)}if(stage===2)for(let k=0;k<2;k++)mesh(new THREE.SphereGeometry(.22,10,8),cropColors[p.type],p.g,k===0?-.2:.2,h+.1,k===0?.1:-.1)}}    
 function updateAnimals(dt,t){for(const a of animals){a.t-=dt;if(a.rest>0){a.rest-=dt;a.g.rotation.y+=dt*.5;continue}if(a.t<=0){a.angle=Math.random()*Math.PI*2;a.t=2+Math.random()*4;if(Math.random()<.2)a.rest=.8+Math.random()*1.5}const nx=a.x+Math.sin(a.angle)*a.speed*dt,nz=a.z+Math.cos(a.angle)*a.speed*dt;if(nx>a.b.a&&nx<a.b.b&&nz>a.b.c&&nz<a.b.d){a.x=nx;a.z=nz;a.g.position.set(nx,0,nz);a.g.rotation.y=a.angle}else a.angle+=Math.PI*.7;const walking=a.t>0&&a.rest<=0;a.limbs.forEach((leg,i)=>{leg.rotation.x=walking?Math.sin(t*8+(i%2)*Math.PI)*.55:Math.sin(t*2+i)*.035});a.g.position.y=Math.abs(Math.sin(t*8))*0.035*(walking?1:0)}}    
 function updatePlayer(dt,t){let f=-move.y,s=move.x,dx=s*Math.cos(yaw)+f*Math.sin(yaw),dz=-s*Math.sin(yaw)+f*Math.cos(yaw),l=Math.hypot(dx,dz),walking=l>.12;if(walking){dx/=l;dz/=l;player.position.x+=dx*6*dt;player.position.z+=dz*6*dt;player.rotation.y=Math.atan2(dx,dz)}player.position.x=THREE.MathUtils.clamp(player.position.x,-48,48);player.position.z=THREE.MathUtils.clamp(player.position.z,-45,45);arms.forEach((a,i)=>a.rotation.x=walking?Math.sin(t*10+i*Math.PI)*.65:0);legs.forEach((a,i)=>a.rotation.x=walking?Math.sin(t*10+i*Math.PI)*.65:0);player.position.y=walking?Math.abs(Math.sin(t*10))*.035:0}    
-function updateCamera(){const d=11,h=d*Math.cos(pitch);const target=new THREE.Vector3(player.position.x-Math.sin(yaw)*h,player.position.y+ d*Math.sin(pitch),player.position.z-Math.cos(yaw)*h);camera.position.lerp(target,.12);camera.lookAt(player.position.x,player.position.y+1,player.position.z)}let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;const t=now/1000;updatePlayer(dt,t);updateAnimals(dt,t);updateCrops();updateCamera();renderer.render(scene,camera)}camera.position.set(0,10,18);loop(performance.now());window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7))});    
+let lastNetworkUpdate = 0;
+
+function sendPlayerPosition(now) {
+  if (!socket.connected || now - lastNetworkUpdate < 50) return;
+
+  lastNetworkUpdate = now;
+
+  socket.emit('player:update', {
+    x: player.position.x,
+    y: player.position.y,
+    z: player.position.z,
+    rotation: player.rotation.y,
+    name: 'Фермер'
+  });
+}
+ function updateCamera(){const d=11,h=d*Math.cos(pitch);const target=new THREE.Vector3(player.position.x-Math.sin(yaw)*h,player.position.y+ d*Math.sin(pitch),player.position.z-Math.cos(yaw)*h);camera.position.lerp(target,.12);camera.lookAt(player.position.x,player.position.y+1,player.position.z)}let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;const t=now/1000;updatePlayer(dt,t);updateAnimals(dt,t);updateCrops();updateCamera();renderer.render(scene,camera)}camera.position.set(0,10,18);loop(performance.now());window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7))});    
 </script></body></html>
